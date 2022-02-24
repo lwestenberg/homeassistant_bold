@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "email": "[%key:common::config_flow::user::data::email%]"
+        },
+        "description": "[%key:common::config_flow::user::description%]"
+      },
+      "validate": {
+        "data": {
+          "password": "[%key:common::config_flow::validate::data::password%]",
+          "validation_code": "[%key:common::config_flow::validate::data::validation_code%]"
+        },
+        "description": "[%key:common::config_flow::validate::description%]"
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "invalid_email": "[%key:common::config_flow::error::invalid_email%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  }
+}
