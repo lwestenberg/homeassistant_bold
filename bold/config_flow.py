@@ -99,10 +99,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         authenticate_response[RESPONSE_EXPIRATION_TIME]
                     )
 
-                    _LOGGER.debug(
-                        "Token set with expiration time %s",
-                        authenticate_response[RESPONSE_EXPIRATION_TIME],
-                    )
                     return self.async_create_entry(
                         title=self.data[CONF_EMAIL], data=self.data
                     )
