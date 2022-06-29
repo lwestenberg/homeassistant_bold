@@ -1,0 +1,28 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Appareil déjà configuré"
+        },
+        "error": {
+            "cannot_connect": "Erreur de connexion",
+            "invalid_auth": "Authentification invalide",
+            "invalid_email": "Adresse e-mail invalide",
+            "unknown": "Erreur inconnue"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "email": "E-mail"
+                },
+                "description": "Créez un compte avec l'application Bold et configurez le pont et la serrure intelligente.\n\nEn raison d'une limitation, vous ne pouvez pas être connecté à l'application Bold et à cette intégration en même temps. Créez des comptes séparés pour éviter d'être déconnecté."
+            },
+            "validate": {
+                "data": {
+                    "password": "Mot de passe",
+                    "verification_code": "Code de vérification"
+                },
+                "description": "Vérifiez vos e-mail pour récupérer le code de vérification."
+            }
+        }
+    }
+}
