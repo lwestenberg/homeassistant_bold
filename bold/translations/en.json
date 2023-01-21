@@ -1,27 +1,20 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Device is already configured"
+            "already_configured": "Account is already configured",
+            "already_in_progress": "Configuration flow is already in progress",
+            "authorize_url_timeout": "Timeout generating authorize URL.",
+            "missing_configuration": "The component is not configured. Please follow the documentation.",
+            "no_url_available": "No URL available. For information about this error, [check the help section]({docs_url})",
+            "oauth_error": "Received invalid token data.",
+            "user_rejected_authorize": "Account linking rejected: {error}"
         },
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_auth": "Invalid authentication",
-            "invalid_email": "Invalid e-mail address",
-            "unknown": "Unexpected error"
+        "create_entry": {
+            "default": "Successfully authenticated"
         },
         "step": {
-            "user": {
-                "data": {
-                    "email": "E-mail"
-                },
-                "description": "Create an account with the Bold app and configure the bridge and smart lock.\n\nDue to a limitation you cannot be logged in the Bold app and this integration at the same time. Create separate accounts to avoid being logged out."
-            },
-            "validate": {
-                "data": {
-                    "password": "Password",
-                    "verification_code": "Verification code"
-                },
-                "description": "Check your e-mail for the verification code."
+            "pick_implementation": {
+                "title": "Pick Authentication Method"
             }
         }
     }

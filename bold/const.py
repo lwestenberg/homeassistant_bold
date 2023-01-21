@@ -1,12 +1,17 @@
 """Constants for the Bold integration."""
-from datetime import timedelta
-from typing import Final
+from homeassistant.const import Platform
 
 DOMAIN = "bold"
-SCAN_INTERVAL = timedelta(seconds=1800)
 
-CONF_EXPIRATION_TIME: Final = "expiration_time"
-CONF_VERIFICATION_CODE: Final = "verification_code"
+PLATFORMS = [
+    Platform.LOCK,
+]
 
-RESPONSE_TOKEN: Final = "token"
-RESPONSE_EXPIRATION_TIME: Final = "expirationTime"
+OAUTH2_AUTHORIZE = "https://auth.boldsmartlock.com/"
+OAUTH2_TOKEN = "https://api.boldsmartlock.com/v2/oauth/token"
+
+CONF_ACTUAL_FIRMWARE_VERSION = "actualFirmwareVersion"
+CONF_BATTERY_LAST_MEASUREMENT = "batteryLastMeasurement"
+CONF_BATTERY_LEVEL = "batteryLevel"
+CONF_MAKE = "make"
+CONF_PERMISSION_REMOTE_ACTIVATE = "permissionRemoteActivate"
