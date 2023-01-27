@@ -36,12 +36,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create Bold Smart Lock entities"""
-    coordinator: BoldCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: BoldCoordinator = hass.data.get(DOMAIN).get(entry.entry_id)
 
     locks = list(
         filter(
-            lambda d: d[CONF_TYPE][CONF_ID] == DeviceType.LOCK.value
-            and d[CONF_PERMISSION_REMOTE_ACTIVATE],
+            lambda d: d.get(CONF_TYPE).get(CONF_ID) == DeviceType.LOCK.value
+            and d.get(CONF_PERMISSION_REMOTE_ACTIVATE),
             coordinator.data,
         )
     )
@@ -59,12 +59,12 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         super().__init__(coordinator)
         self._data = data
         self._coordinator: BoldCoordinator = coordinator
-        self._attr_name = data[CONF_NAME]
-        self._attr_unique_id = data[CONF_ID]
+        self._attr_name = data.get(CONF_NAME)
+        self._attr_unique_id = data.get(CONF_ID)
         self._unlock_end_time = dt_util.utcnow()
         self._attr_extra_state_attributes = {
-            "battery_level": data[CONF_BATTERY_LEVEL],
-            "battery_last_measurement": data[CONF_BATTERY_LAST_MEASUREMENT],
+            "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
+            "battery_last_measurement": data.get(CONF_BATTERY_LAST_MEASUREMENT),
         }
 
     @property
@@ -74,9 +74,9 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
             {
                 "identifiers": {(DOMAIN, self._attr_unique_id)},
                 "name": self._attr_name,
-                "manufacturer": self._data[CONF_MODEL][CONF_MAKE],
-                "model": self._data[CONF_MODEL][CONF_MODEL],
-                "sw_version": self._data[CONF_ACTUAL_FIRMWARE_VERSION],
+                "manufacturer": self._data.get(CONF_MODEL).get(CONF_MAKE),
+                "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
+                "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
                 "via_device": (DOMAIN, self._attr_unique_id),
             }
         )
@@ -94,12 +94,12 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
             )
             if activation_response:
                 self._unlock_end_time = dt_util.utcnow() + datetime.timedelta(
-                    seconds=activation_response["activationTime"]
+                    seconds=activation_response.get("activationTime")
                 )
                 self.update_state()
                 _LOGGER.debug(
                     "Lock deactivated, scheduled activation of lock after %s seconds",
-                    activation_response["activationTime"],
+                    activation_response("activationTime"),
                 )
                 async_track_point_in_utc_time(
                     self.hass, self.update_state, self._unlock_end_time
@@ -111,7 +111,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock Bold Smart Lock."""
-        try:
+        try.get(
             if await self._coordinator.bold.remote_deactivation(self._attr_unique_id):
                 self._unlock_end_time = dt_util.utcnow()
                 self.update_state()
