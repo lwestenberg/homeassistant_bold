@@ -4,8 +4,7 @@ import logging
 from typing import Any
 
 from bold_smart_lock.enums import DeviceType
-from bold_smart_lock.exceptions import DeviceFirmwareOutdatedError
-# , TooManyRequestsError
+from bold_smart_lock.exceptions import DeviceFirmwareOutdatedError, TooManyRequestsError
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
@@ -122,10 +121,10 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
                 async_track_point_in_utc_time(
                     self.hass, self.update_state, self._unlock_end_time
                 )
-        # except TooManyRequestsError as exception:
-        #     raise HomeAssistantError(
-        #         "The user has sent too many requests in a given amount of time."
-        #     ) from exception
+        except TooManyRequestsError as exception:
+            raise HomeAssistantError(
+                "The user has sent too many requests in a given amount of time."
+            ) from exception
         except Exception as exception:
             raise HomeAssistantError(
                 f"Error while unlocking: {self._attr_name}"
@@ -138,10 +137,10 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
                 self._unlock_end_time = dt_util.utcnow()
                 self.update_state()
                 _LOGGER.debug("Lock activated")
-        # except TooManyRequestsError as exception:
-        #     raise HomeAssistantError(
-        #         "The user has sent too many requests in a given amount of time."
-        #     ) from exception
+        except TooManyRequestsError as exception:
+            raise HomeAssistantError(
+                "The user has sent too many requests in a given amount of time."
+            ) from exception
         except DeviceFirmwareOutdatedError as exception:
             raise HomeAssistantError(
                 f"Update the firmware of your Bold device '{self._attr_name}' to enable deactivating."
