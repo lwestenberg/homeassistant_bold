@@ -111,7 +111,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock Bold Smart Lock."""
-        try.get(
+        try:
             if await self._coordinator.bold.remote_deactivation(self._attr_unique_id):
                 self._unlock_end_time = dt_util.utcnow()
                 self.update_state()
