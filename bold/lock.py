@@ -17,7 +17,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.entity_registry import RegistryEntryDisabler
+# from homeassistant.helpers.entity_registry import RegistryEntryDisabler
 import homeassistant.util.dt as dt_util
 
 from .const import (
@@ -28,8 +28,8 @@ from .const import (
     CONF_GATEWAY_ID,
     CONF_MAKE,
     CONF_PERMISSION_REMOTE_ACTIVATE,
-    CONF_SETTINGS,
-    CONF_SETTINGS_CONTROLLERFUNCTIONALITY,
+    # CONF_SETTINGS,
+    # CONF_SETTINGS_CONTROLLERFUNCTIONALITY,
     DOMAIN,
 )
 from .coordinator import BoldCoordinator
@@ -62,8 +62,6 @@ async def async_setup_entry(
     async_add_entities(
         BoldLockEntity(coordinator=coordinator, data=lock) for lock in locks
     )
-    for lock in locks:
-        print(lock.get("name"))
 
 
 class BoldLockEntity(CoordinatorEntity, LockEntity):
@@ -131,7 +129,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
                 self.update_state()
                 _LOGGER.debug(
                     "Lock deactivated, scheduled activation of lock after %s seconds",
-                    activation_response("activationTime"),
+                    activation_response.get("activationTime"),
                 )
                 async_track_point_in_utc_time(
                     self.hass, self.update_state, self._unlock_end_time
