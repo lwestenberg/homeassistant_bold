@@ -4,9 +4,8 @@ import logging
 from typing import Any
 
 from bold_smart_lock.enums import DeviceType
-from bold_smart_lock.exceptions import (
-    DeviceFirmwareOutdatedError,
-)  # , TooManyRequestsError
+from bold_smart_lock.exceptions import DeviceFirmwareOutdatedError
+# , TooManyRequestsError
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
@@ -17,7 +16,6 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-# from homeassistant.helpers.entity_registry import RegistryEntryDisabler
 import homeassistant.util.dt as dt_util
 
 from .const import (
@@ -28,8 +26,6 @@ from .const import (
     CONF_GATEWAY_ID,
     CONF_MAKE,
     CONF_PERMISSION_REMOTE_ACTIVATE,
-    # CONF_SETTINGS,
-    # CONF_SETTINGS_CONTROLLERFUNCTIONALITY,
     DOMAIN,
 )
 from .coordinator import BoldCoordinator
@@ -67,8 +63,6 @@ async def async_setup_entry(
 class BoldLockEntity(CoordinatorEntity, LockEntity):
     """Bold Smart Lock entity"""
 
-    _attr_entity_registry_enabled_default = False
-
     def __init__(self, coordinator: BoldCoordinator, data):
         """Init Bold Smart Lock entity"""
         super().__init__(coordinator)
@@ -102,13 +96,6 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         }
         if self._data.get(CONF_TYPE).get(CONF_ID) == DeviceType.LOCK.value:
             data["via_device"] = (DOMAIN, self._attr_gateway_id)
-        # if self._data.get(CONF_TYPE).get(
-        #     CONF_ID
-        # ) == DeviceType.GATEWAY.value and not self._data.get(CONF_SETTINGS).get(
-        #     CONF_SETTINGS_CONTROLLERFUNCTIONALITY
-        # ):
-        #     print("Bold Connect without Controller functionality: ", self._attr_name)
-        #     data["disabled_by"] = None
         return DeviceInfo(data)
 
     @property
@@ -119,6 +106,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock Bold device."""
         try:
+            print("locking", self._attr_unique_id)
             activation_response = await self._coordinator.bold.remote_activation(
                 self._attr_unique_id
             )
