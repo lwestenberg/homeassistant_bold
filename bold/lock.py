@@ -4,7 +4,9 @@ import logging
 from typing import Any
 
 from bold_smart_lock.enums import DeviceType
-from bold_smart_lock.exceptions import DeviceFirmwareOutdatedError
+from bold_smart_lock.exceptions import (
+    DeviceFirmwareOutdatedError,
+)  # , TooManyRequestsError
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
@@ -15,14 +17,19 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity_registry import RegistryEntryDisabler
 import homeassistant.util.dt as dt_util
 
 from .const import (
     CONF_ACTUAL_FIRMWARE_VERSION,
     CONF_BATTERY_LAST_MEASUREMENT,
     CONF_BATTERY_LEVEL,
+    CONF_GATEWAY,
+    CONF_GATEWAY_ID,
     CONF_MAKE,
     CONF_PERMISSION_REMOTE_ACTIVATE,
+    CONF_SETTINGS,
+    CONF_SETTINGS_CONTROLLERFUNCTIONALITY,
     DOMAIN,
 )
 from .coordinator import BoldCoordinator
@@ -40,8 +47,14 @@ async def async_setup_entry(
 
     locks = list(
         filter(
-            lambda d: d.get(CONF_TYPE).get(CONF_ID) == DeviceType.LOCK.value
-            and d.get(CONF_PERMISSION_REMOTE_ACTIVATE),
+            lambda d: (
+                d.get(CONF_TYPE).get(CONF_ID) == DeviceType.LOCK.value
+                and d.get(CONF_PERMISSION_REMOTE_ACTIVATE)
+            )
+            or (
+                d.get(CONF_TYPE).get(CONF_ID) == DeviceType.GATEWAY.value
+                and d.get(CONF_PERMISSION_REMOTE_ACTIVATE)
+            ),
             coordinator.data,
         )
     )
@@ -49,10 +62,14 @@ async def async_setup_entry(
     async_add_entities(
         BoldLockEntity(coordinator=coordinator, data=lock) for lock in locks
     )
+    for lock in locks:
+        print(lock.get("name"))
 
 
 class BoldLockEntity(CoordinatorEntity, LockEntity):
     """Bold Smart Lock entity"""
+
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: BoldCoordinator, data):
         """Init Bold Smart Lock entity"""
@@ -61,25 +78,40 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         self._coordinator: BoldCoordinator = coordinator
         self._attr_name = data.get(CONF_NAME)
         self._attr_unique_id = data.get(CONF_ID)
+        self._attr_gateway_id = data.get(CONF_GATEWAY, {}).get(CONF_GATEWAY_ID)
         self._unlock_end_time = dt_util.utcnow()
-        self._attr_extra_state_attributes = {
-            "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
-            "battery_last_measurement": data.get(CONF_BATTERY_LAST_MEASUREMENT),
-        }
+        if data.get(CONF_TYPE).get(CONF_ID) == DeviceType.LOCK.value:
+            self._attr_extra_state_attributes = {
+                "battery_last_measurement": data.get(CONF_BATTERY_LAST_MEASUREMENT),
+                "battery_level": data.get(CONF_BATTERY_LEVEL),
+                "device_id": self._attr_unique_id,
+                "gateway_id": self._attr_gateway_id,
+            }
+        elif data.get(CONF_TYPE).get(CONF_ID) == DeviceType.GATEWAY:
+            self._attr_extra_state_attributes = {
+                "device_id": self._attr_unique_id,
+            }
 
     @property
     def device_info(self):
         """Return the device information for this entity."""
-        return DeviceInfo(
-            {
-                "identifiers": {(DOMAIN, self._attr_unique_id)},
-                "name": self._attr_name,
-                "manufacturer": self._data.get(CONF_MODEL).get(CONF_MAKE),
-                "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
-                "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
-                "via_device": (DOMAIN, self._attr_unique_id),
-            }
-        )
+        data = {
+            "identifiers": {(DOMAIN, self._attr_unique_id)},
+            "name": self._attr_name,
+            "manufacturer": self._data.get(CONF_MODEL).get(CONF_MAKE),
+            "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
+            "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
+        }
+        if self._data.get(CONF_TYPE).get(CONF_ID) == DeviceType.LOCK.value:
+            data["via_device"] = (DOMAIN, self._attr_gateway_id)
+        # if self._data.get(CONF_TYPE).get(
+        #     CONF_ID
+        # ) == DeviceType.GATEWAY.value and not self._data.get(CONF_SETTINGS).get(
+        #     CONF_SETTINGS_CONTROLLERFUNCTIONALITY
+        # ):
+        #     print("Bold Connect without Controller functionality: ", self._attr_name)
+        #     data["disabled_by"] = None
+        return DeviceInfo(data)
 
     @property
     def is_locked(self) -> bool:
@@ -87,7 +119,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         return dt_util.utcnow() >= self._unlock_end_time
 
     async def async_unlock(self, **kwargs: Any) -> None:
-        """Unlock Bold Smart Lock."""
+        """Unlock Bold device."""
         try:
             activation_response = await self._coordinator.bold.remote_activation(
                 self._attr_unique_id
@@ -104,21 +136,29 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
                 async_track_point_in_utc_time(
                     self.hass, self.update_state, self._unlock_end_time
                 )
+        # except TooManyRequestsError as exception:
+        #     raise HomeAssistantError(
+        #         "The user has sent too many requests in a given amount of time."
+        #     ) from exception
         except Exception as exception:
             raise HomeAssistantError(
                 f"Error while unlocking: {self._attr_name}"
             ) from exception
 
     async def async_lock(self, **kwargs: Any) -> None:
-        """Lock Bold Smart Lock."""
+        """Lock Bold device."""
         try:
             if await self._coordinator.bold.remote_deactivation(self._attr_unique_id):
                 self._unlock_end_time = dt_util.utcnow()
                 self.update_state()
                 _LOGGER.debug("Lock activated")
+        # except TooManyRequestsError as exception:
+        #     raise HomeAssistantError(
+        #         "The user has sent too many requests in a given amount of time."
+        #     ) from exception
         except DeviceFirmwareOutdatedError as exception:
             raise HomeAssistantError(
-                f"Update the firmware of your Bold Smart Lock '{self._attr_name}' to enable deactivating."
+                f"Update the firmware of your Bold device '{self._attr_name}' to enable deactivating."
             ) from exception
         except Exception as exception:
             raise HomeAssistantError(
