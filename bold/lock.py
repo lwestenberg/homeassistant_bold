@@ -76,7 +76,7 @@ async def async_setup_entry(
 class BoldLockEntity(CoordinatorEntity, LockEntity):
     """Bold Smart Lock entity"""
 
-    entity_registry_enabled_default = False
+    entity_registry_enabled_default = True
 
     def __init__(self, coordinator: BoldCoordinator, data):
         """Init Bold Smart Lock entity"""
@@ -181,6 +181,8 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
 
 class BoldGatewayEntity(CoordinatorEntity, LockEntity):
     """Bold Connect entity"""
+
+    entity_registry_enabled_default = False
 
     def __init__(self, coordinator: BoldCoordinator, data):
         """Init Connect entity"""
