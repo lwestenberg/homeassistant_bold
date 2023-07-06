@@ -21,9 +21,9 @@ from .const import (
     CONF_ACTUAL_FIRMWARE_VERSION,
     CONF_BATTERY_LAST_MEASUREMENT,
     CONF_BATTERY_LEVEL,
-    CONF_MAKE,
     CONF_PERMISSION_REMOTE_ACTIVATE,
     DOMAIN,
+    MANUFACTURER,
 )
 from .coordinator import BoldCoordinator
 
@@ -74,7 +74,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
             {
                 "identifiers": {(DOMAIN, self._attr_unique_id)},
                 "name": self._attr_name,
-                "manufacturer": self._data.get(CONF_MODEL).get(CONF_MAKE),
+                "manufacturer": MANUFACTURER,
                 "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
                 "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
                 "via_device": (DOMAIN, self._attr_unique_id),
