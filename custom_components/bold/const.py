@@ -2,6 +2,7 @@
 from homeassistant.const import Platform
 
 DOMAIN = "bold"
+MANUFACTURER = "Bold"
 
 PLATFORMS = [
     Platform.LOCK,
@@ -13,5 +14,4 @@ OAUTH2_TOKEN = "https://api.boldsmartlock.com/v2/oauth/token"
 CONF_ACTUAL_FIRMWARE_VERSION = "actualFirmwareVersion"
 CONF_BATTERY_LAST_MEASUREMENT = "batteryLastMeasurement"
 CONF_BATTERY_LEVEL = "batteryLevel"
-CONF_MANUFACTURER = "Bold"
 CONF_PERMISSION_REMOTE_ACTIVATE = "permissionRemoteActivate"
