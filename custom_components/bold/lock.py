@@ -99,7 +99,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
                 self.update_state()
                 _LOGGER.debug(
                     "Lock deactivated, scheduled activation of lock after %s seconds",
-                    activation_response("activationTime"),
+                    activation_response.get("activationTime"),
                 )
                 async_track_point_in_utc_time(
                     self.hass, self.update_state, self._unlock_end_time
