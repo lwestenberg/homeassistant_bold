@@ -90,7 +90,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         self._unlock_end_time = dt_util.utcnow()
         self._attr_extra_state_attributes = {
             "battery_last_measurement": data.get(CONF_BATTERY_LAST_MEASUREMENT),
-            "battery_level": data.get(CONF_BATTERY_LEVEL),
+            "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
             "device_id": self._attr_unique_id,
             "gateway_id": self._gateway_id,
         }
