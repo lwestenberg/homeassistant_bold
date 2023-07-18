@@ -1,10 +1,10 @@
 {
   "domain": "bold",
   "name": "Bold",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/bold",
-  "requirements": ["bold_smart_lock==0.3.8"],
+  "requirements": ["bold_smart_lock==0.3.9"],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},
