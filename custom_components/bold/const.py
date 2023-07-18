@@ -2,6 +2,7 @@
 from homeassistant.const import Platform
 
 DOMAIN = "bold"
+MANUFACTURER = "Bold"
 
 PLATFORMS = [
     Platform.LOCK,

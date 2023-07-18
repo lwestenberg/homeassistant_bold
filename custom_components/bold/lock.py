@@ -30,6 +30,7 @@ from .const import (
     CONF_MAKE,
     CONF_PERMISSION_REMOTE_ACTIVATE,
     DOMAIN,
+    MANUFACTURER,
 )
 from .coordinator import BoldCoordinator
 
@@ -97,15 +98,16 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
     @property
     def device_info(self):
         """Return the device information for this entity."""
-        data = {
-            "identifiers": {(DOMAIN, self._attr_unique_id)},
-            "name": self._attr_name,
-            "manufacturer": self._data.get(CONF_MODEL).get(CONF_MAKE),
-            "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
-            "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
-            "via_device": (DOMAIN, self._gateway_id),
-        }
-        return DeviceInfo(data)
+        return DeviceInfo(
+            {
+                "identifiers": {(DOMAIN, self._attr_unique_id)},
+                "name": self._attr_name,
+                "manufacturer": MANUFACTURER,
+                "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
+                "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
+                "via_device": (DOMAIN, self._attr_unique_id),
+            }
+        )
 
     @property
     def is_locked(self) -> bool:
