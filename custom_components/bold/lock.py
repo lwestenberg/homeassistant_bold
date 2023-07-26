@@ -104,7 +104,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
                 "manufacturer": MANUFACTURER,
                 "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
                 "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
-                "via_device": (DOMAIN, self._attr_unique_id),
+                "via_device": (DOMAIN, self._gateway_id),
             }
         )
 
@@ -192,7 +192,6 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
         self._attr_unique_id = data.get(CONF_ID)
         self._coordinator: BoldCoordinator = coordinator
         self._data = data
-        self._gateway_id = data.get(CONF_GATEWAY, {}).get(CONF_GATEWAY_ID)
         self._unlock_end_time = dt_util.utcnow()
         self._attr_extra_state_attributes = {
             "device_id": self._attr_unique_id,
@@ -208,7 +207,6 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
                 "manufacturer": MANUFACTURER,
                 "model": self._data.get(CONF_MODEL).get(CONF_MODEL),
                 "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
-                "via_device": (DOMAIN, self._attr_unique_id),
             }
         )
 
