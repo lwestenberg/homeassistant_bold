@@ -13,7 +13,7 @@ from bold_smart_lock.exceptions import (
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ID, CONF_MODEL, CONF_NAME, CONF_TYPE
-from homeassistant.core import DOMAIN, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -28,6 +28,7 @@ from .const import (
     CONF_GATEWAY,
     CONF_GATEWAY_ID,
     CONF_PERMISSION_REMOTE_ACTIVATE,
+    CONF_REQUIRED_FIRMWARE_VERSION,
     DOMAIN,
     MANUFACTURER,
 )
@@ -92,6 +93,8 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
             "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
             "device_id": self._attr_unique_id,
             "gateway_id": self._gateway_id,
+            "update_available": CONF_ACTUAL_FIRMWARE_VERSION
+            < CONF_REQUIRED_FIRMWARE_VERSION,
         }
 
     @property
@@ -195,6 +198,8 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
         self._unlock_end_time = dt_util.utcnow()
         self._attr_extra_state_attributes = {
             "device_id": self._attr_unique_id,
+            "update_available": CONF_ACTUAL_FIRMWARE_VERSION
+            < CONF_REQUIRED_FIRMWARE_VERSION,
         }
 
     @property
@@ -209,7 +214,6 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
                 "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
             }
         )
-
 
     @property
     def is_locked(self) -> bool:
