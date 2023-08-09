@@ -93,8 +93,8 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
             "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
             "device_id": self._attr_unique_id,
             "gateway_id": self._gateway_id,
-            "update_available": CONF_ACTUAL_FIRMWARE_VERSION
-            < CONF_REQUIRED_FIRMWARE_VERSION,
+            "update_available": data.get(CONF_ACTUAL_FIRMWARE_VERSION)
+            < data.get(CONF_REQUIRED_FIRMWARE_VERSION),
         }
 
     @property
@@ -198,8 +198,8 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
         self._unlock_end_time = dt_util.utcnow()
         self._attr_extra_state_attributes = {
             "device_id": self._attr_unique_id,
-            "update_available": CONF_ACTUAL_FIRMWARE_VERSION
-            < CONF_REQUIRED_FIRMWARE_VERSION,
+            "update_available": data.get(CONF_ACTUAL_FIRMWARE_VERSION)
+            < data.get(CONF_REQUIRED_FIRMWARE_VERSION),
         }
 
     @property
