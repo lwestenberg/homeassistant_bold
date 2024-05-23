@@ -83,7 +83,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         """Init Bold Smart Lock entity"""
         super().__init__(coordinator)
         self._attr_name = data.get(CONF_NAME)
-        self._attr_unique_id = data.get(CONF_ID)
+        self._attr_unique_id = str(data.get(CONF_ID))
         self._coordinator: BoldCoordinator = coordinator
         self._data = data
         self._gateway_id = data.get(CONF_GATEWAY, {}).get(CONF_GATEWAY_ID)
@@ -192,7 +192,7 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
         """Init Connect entity"""
         super().__init__(coordinator)
         self._attr_name = data.get(CONF_NAME)
-        self._attr_unique_id = data.get(CONF_ID)
+        self._attr_unique_id = str(data.get(CONF_ID))
         self._coordinator: BoldCoordinator = coordinator
         self._data = data
         self._unlock_end_time = dt_util.utcnow()
