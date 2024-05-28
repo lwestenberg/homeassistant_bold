@@ -44,6 +44,10 @@ async def async_setup_entry(
 ) -> None:
     """Create Bold Smart Lock entities"""
     coordinator: BoldCoordinator = hass.data.get(DOMAIN).get(entry.entry_id)
+    ent_reg = er.async_get(hass)
+    for registry_entry in ent_reg.entities.get_entries_for_config_entry_id(entry.entry_id):
+        if isinstance(registry_entry.unique_id, int):
+            ent_reg.async_update_entity(registry_entry.entity_id, new_unique_id=str(registry_entry.unique_id))
 
     gateways = list(
         filter(
