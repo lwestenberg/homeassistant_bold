@@ -13,10 +13,11 @@ from bold_smart_lock.exceptions import (
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ID, CONF_MODEL, CONF_NAME, CONF_TYPE
-from homeassistant.core import DOMAIN, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.util.dt as dt_util
@@ -28,6 +29,7 @@ from .const import (
     CONF_GATEWAY,
     CONF_GATEWAY_ID,
     CONF_PERMISSION_REMOTE_ACTIVATE,
+    CONF_REQUIRED_FIRMWARE_VERSION,
     DOMAIN,
     MANUFACTURER,
 )
@@ -43,6 +45,10 @@ async def async_setup_entry(
 ) -> None:
     """Create Bold Smart Lock entities"""
     coordinator: BoldCoordinator = hass.data.get(DOMAIN).get(entry.entry_id)
+    ent_reg = er.async_get(hass)
+    for registry_entry in ent_reg.entities.get_entries_for_config_entry_id(entry.entry_id):
+        if isinstance(registry_entry.unique_id, int):
+            ent_reg.async_update_entity(registry_entry.entity_id, new_unique_id=str(registry_entry.unique_id))
 
     gateways = list(
         filter(
@@ -82,7 +88,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         """Init Bold Smart Lock entity"""
         super().__init__(coordinator)
         self._attr_name = data.get(CONF_NAME)
-        self._attr_unique_id = data.get(CONF_ID)
+        self._attr_unique_id = str(data.get(CONF_ID))
         self._coordinator: BoldCoordinator = coordinator
         self._data = data
         self._gateway_id = data.get(CONF_GATEWAY, {}).get(CONF_GATEWAY_ID)
@@ -92,6 +98,8 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
             "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
             "device_id": self._attr_unique_id,
             "gateway_id": self._gateway_id,
+            "update_available": data.get(CONF_ACTUAL_FIRMWARE_VERSION)
+            < data.get(CONF_REQUIRED_FIRMWARE_VERSION),
         }
 
     @property
@@ -189,12 +197,14 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
         """Init Connect entity"""
         super().__init__(coordinator)
         self._attr_name = data.get(CONF_NAME)
-        self._attr_unique_id = data.get(CONF_ID)
+        self._attr_unique_id = str(data.get(CONF_ID))
         self._coordinator: BoldCoordinator = coordinator
         self._data = data
         self._unlock_end_time = dt_util.utcnow()
         self._attr_extra_state_attributes = {
             "device_id": self._attr_unique_id,
+            "update_available": data.get(CONF_ACTUAL_FIRMWARE_VERSION)
+            < data.get(CONF_REQUIRED_FIRMWARE_VERSION),
         }
 
     @property
@@ -209,7 +219,6 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
                 "sw_version": self._data.get(CONF_ACTUAL_FIRMWARE_VERSION),
             }
         )
-
 
     @property
     def is_locked(self) -> bool:
