@@ -57,7 +57,7 @@ async def async_setup_entry(
             coordinator.data,
         )
     )
-    print("gateways", gateways)
+    _LOGGER.debug("Found %d gateways", len(gateways))
     async_add_entities(
         BoldGatewayEntity(
             coordinator=coordinator,
@@ -73,7 +73,7 @@ async def async_setup_entry(
             coordinator.data,
         )
     )
-    print("locks", locks)
+    _LOGGER.debug("Found %d locks", len(locks))
     async_add_entities(
         BoldLockEntity(coordinator=coordinator, data=lock) for lock in locks
     )
@@ -129,7 +129,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock Bold Smart Lock."""
         try:
-            print("locking", self._attr_unique_id)
+            _LOGGER.debug("Unlocking %s", self._attr_unique_id)
             activation_response = await self._coordinator.bold.remote_activation(
                 self._attr_unique_id
             )
@@ -233,7 +233,7 @@ class BoldGatewayEntity(CoordinatorEntity, LockEntity):
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock Bold Connect."""
         try:
-            print("locking", self._attr_unique_id)
+            _LOGGER.debug("Unlocking %s", self._attr_unique_id)
             activation_response = await self._coordinator.bold.remote_activation(
                 self._attr_unique_id
             )
