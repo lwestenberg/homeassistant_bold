@@ -30,6 +30,7 @@ from .const import (
     CONF_GATEWAY_ID,
     CONF_PERMISSION_REMOTE_ACTIVATE,
     CONF_REQUIRED_FIRMWARE_VERSION,
+    DATA_LOCK_ENTITIES,
     DOMAIN,
     MANUFACTURER,
 )
@@ -74,9 +75,15 @@ async def async_setup_entry(
         )
     )
     print("locks", locks)
-    async_add_entities(
+    lock_entities = [
         BoldLockEntity(coordinator=coordinator, data=lock) for lock in locks
-    )
+    ]
+    async_add_entities(lock_entities)
+
+    # Register entities in hass.data so the webhook handler can find them
+    hass.data.setdefault(DOMAIN, {}).setdefault(DATA_LOCK_ENTITIES, {})
+    for entity in lock_entities:
+        hass.data[DOMAIN][DATA_LOCK_ENTITIES][entity.unique_id] = entity
 
 
 class BoldLockEntity(CoordinatorEntity, LockEntity):
@@ -93,6 +100,7 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
         self._data = data
         self._gateway_id = data.get(CONF_GATEWAY, {}).get(CONF_GATEWAY_ID)
         self._unlock_end_time = dt_util.utcnow()
+        self._changed_by: str | None = None
         self._attr_extra_state_attributes = {
             "battery_last_measurement": data.get(CONF_BATTERY_LAST_MEASUREMENT),
             "battery_level": data.get(CONF_BATTERY_LEVEL, 0),
@@ -125,6 +133,42 @@ class BoldLockEntity(CoordinatorEntity, LockEntity):
     def available(self) -> bool:
         """Return the reachability of the lock."""
         return self._data.get(CONF_GATEWAY, {}).get(CONF_GATEWAY_ID) is not None
+
+    @property
+    def changed_by(self) -> str | None:
+        """Return the last user who changed the lock state."""
+        return self._changed_by
+
+    @callback
+    def handle_webhook_event(
+        self, event_type: str, user_name: str, payload: dict
+    ) -> None:
+        """Handle a webhook event for this lock entity."""
+        _LOGGER.debug(
+            "Lock %s received webhook event: type=%s user=%s",
+            self._attr_name,
+            event_type,
+            user_name,
+        )
+        if user_name:
+            self._changed_by = user_name
+
+        # Update lock state based on event type
+        event_lower = event_type.lower() if event_type else ""
+        if "activation" in event_lower and "deactivation" not in event_lower:
+            # Activation = unlocked
+            activation_time = payload.get("activationTime", 5)
+            self._unlock_end_time = dt_util.utcnow() + datetime.timedelta(
+                seconds=activation_time
+            )
+            async_track_point_in_utc_time(
+                self.hass, self.update_state, self._unlock_end_time
+            )
+        elif "deactivation" in event_lower:
+            # Deactivation = locked
+            self._unlock_end_time = dt_util.utcnow()
+
+        self.async_write_ha_state()
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock Bold Smart Lock."""
