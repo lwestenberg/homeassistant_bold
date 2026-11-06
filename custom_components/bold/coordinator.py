@@ -1,8 +1,8 @@
 """Coordinator to fetch the data."""
+import asyncio
 from datetime import timedelta
 import logging
 
-import async_timeout
 from bold_smart_lock.bold_smart_lock import BoldSmartLock
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -26,7 +26,7 @@ class BoldCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Fetch data from Bold Smart Lock API."""
         try:
-            async with async_timeout.timeout(10):
+            async with asyncio.timeout(10):
                 return await self.bold.get_device_permissions()
         except Exception as exc:
             raise UpdateFailed("Error communicating with API") from exc
